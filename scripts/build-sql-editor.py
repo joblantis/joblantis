@@ -6,8 +6,10 @@ import os
 root = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "supabase")
 
 
-def build(name, header, files, footer=()):
+def build(name, header, files, footer=(), prelude=None):
     out = list(header) + ["", "begin;", ""]
+    if prelude:
+        out += [open(prelude).read().rstrip(), ""]
     for f in files:
         out += [f"-- ===== {os.path.basename(f)} =====", open(f).read().rstrip(), ""]
     out += list(footer) + ["commit;", ""]
@@ -20,7 +22,8 @@ build(
     "1_schema.sql",
     [
         "-- JOBLANTIS – 1/2: adatbázisséma (táblák, függvények, RLS, Storage).",
-        "-- Supabase → SQL Editor → New query → másold be az egészet → Run. Csak egyszer kell lefuttatni.",
+        "-- Supabase → SQL Editor → New query → másold be az egészet → Run.",
+        "-- Újrafuttatható: az elején törli a JOBLANTIS korábbi objektumait és ADATAIT. Élesítés után ne futtasd!",
         "-- Generálta: scripts/build-sql-editor.py",
     ],
     migs,
@@ -32,6 +35,7 @@ build(
         + "\non conflict do nothing;",
         "",
     ],
+    prelude=os.path.join(root, "sql-editor", "0_reset.sql.part"),
 )
 build(
     "2_seed.sql",

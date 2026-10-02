@@ -1,0 +1,56 @@
+-- ----- Előzetes takarítás: a JOBLANTIS korábbi (akár félkész) objektumainak törlése -----
+-- FIGYELEM: minden JOBLANTIS táblát és adatot töröl. Csak indulás előtt, üres projekten használd!
+drop trigger if exists on_auth_user_created on auth.users;
+
+do $$
+declare
+  p text;
+begin
+  foreach p in array array[
+    'company files read','company files insert','company files update','company files delete',
+    'candidate files read','candidate files insert','candidate files update','candidate files delete'
+  ] loop
+    execute format('drop policy if exists %I on storage.objects', p);
+  end loop;
+end $$;
+
+drop table if exists
+  public.followups, public.evaluation_items, public.evaluations, public.trial_shifts,
+  public.reference_competencies, public."references", public.reference_requests,
+  public.messages, public.application_events, public.applications, public.job_swipes,
+  public.job_requirements, public.jobs,
+  public.media_item_competencies, public.media_items, public.albums,
+  public.work_style_profiles, public.candidate_skills, public.candidate_swipe_answers,
+  public.candidate_target_roles, public.candidate_profiles,
+  public.swipe_cards, public.work_style_dimensions, public.template_competencies,
+  public.competencies, public.job_role_templates,
+  public.venue_photos, public.venues, public.company_members, public.companies,
+  public.settlements, public.profiles
+  cascade;
+
+do $$
+declare
+  f regprocedure;
+begin
+  for f in
+    select p.oid::regprocedure from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public' and p.proname = any (array[
+      'set_updated_at','try_uuid','distance_km','app_role','is_admin','is_company_member','is_company_owner',
+      'is_job_public','venue_has_public_job','company_has_public_job','employer_can_view_candidate',
+      'is_application_participant','is_application_employer','handle_new_user','create_company',
+      'log_application_status','check_job_venue','expire_jobs','search_public_jobs','candidate_relevant_competencies'
+    ])
+  loop
+    execute format('drop function if exists %s cascade', f);
+  end loop;
+end $$;
+
+drop type if exists
+  public.user_role, public.company_member_role, public.shift_type, public.requirement_kind,
+  public.swipe_dir, public.card_kind, public.skill_status, public.verification_type,
+  public.job_status, public.wage_period, public.application_status, public.media_kind,
+  public.reference_request_status, public.trial_status
+  cascade;
+
+drop schema if exists joblantis_internal cascade;
+-- ----- takarítás vége -----
