@@ -848,6 +848,19 @@ language sql stable security invoker set search_path = public as $$
 $$;
 grant execute on function public.candidate_relevant_competencies to authenticated;
 
+alter function public.create_company(text, text, text) set search_path = public, extensions;
+
+alter function public.set_updated_at() set search_path = public;
+alter function public.try_uuid(text) set search_path = public;
+alter function public.distance_km(double precision, double precision, double precision, double precision) set search_path = public;
+alter function public.check_job_venue() set search_path = public;
+revoke execute on function public.handle_new_user() from public, anon, authenticated;
+revoke execute on function public.log_application_status() from public, anon, authenticated;
+revoke execute on function public.check_job_venue() from public, anon, authenticated;
+revoke execute on function public.set_updated_at() from public, anon, authenticated;
+revoke execute on function public.create_company(text, text, text) from public, anon;
+grant execute on function public.create_company(text, text, text) to authenticated;
+
 create schema if not exists joblantis_internal;
 create table if not exists joblantis_internal.migrations (name text primary key, applied_at timestamptz not null default now());
 insert into joblantis_internal.migrations (name) values
@@ -861,7 +874,9 @@ insert into joblantis_internal.migrations (name) values
   ('0008_rls.sql'),
   ('0009_storage.sql'),
   ('0010_public_job_search.sql'),
-  ('0011_candidate_helpers.sql')
+  ('0011_candidate_helpers.sql'),
+  ('0012_create_company_search_path.sql'),
+  ('0013_hardening.sql')
 on conflict do nothing;
 
 commit;
