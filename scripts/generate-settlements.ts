@@ -1,6 +1,7 @@
 /**
  * Magyar települések seed generálása a GeoNames irányítószám-exportjából.
  * Forrás: https://download.geonames.org/export/zip/HU.zip (CC BY 4.0, © GeoNames)
+ * Tartalék: ugyanennek a GeoNames-fájlnak a tükre a symerio/postal-codes-data repóban.
  *
  * Használat:
  *   1. Tedd a HU.txt fájlt a scripts/data/ mappába (vagy hagyd, hogy a szkript letöltse).
@@ -17,17 +18,22 @@ const txtPath = path.join(dataDir, "HU.txt");
 const zipPath = path.join(dataDir, "HU.zip");
 const outPath = path.join(root, "supabase", "seed", "01_settlements.sql");
 const SOURCE_URL = "https://download.geonames.org/export/zip/HU.zip";
+const MIRROR_TXT_URL = "https://raw.githubusercontent.com/symerio/postal-codes-data/master/data/geonames/HU.txt";
 
 async function ensureSource() {
   if (existsSync(txtPath)) return;
   mkdirSync(dataDir, { recursive: true });
   if (!existsSync(zipPath)) {
     console.log(`Letöltés: ${SOURCE_URL}`);
-    const res = await fetch(SOURCE_URL);
-    if (!res.ok) {
-      throw new Error(
-        `A letöltés nem sikerült (${res.status}). Töltsd le kézzel a HU.zip-et, és tedd ide: ${dataDir}`,
-      );
+    const res = await fetch(SOURCE_URL).catch(() => null);
+    if (!res?.ok) {
+      console.log(`Nem elérhető, tükör: ${MIRROR_TXT_URL}`);
+      const mirror = await fetch(MIRROR_TXT_URL).catch(() => null);
+      if (!mirror?.ok) {
+        throw new Error(`A letöltés nem sikerült. Töltsd le kézzel a HU.zip-et, és tedd ide: ${dataDir}`);
+      }
+      writeFileSync(txtPath, await mirror.text());
+      return;
     }
     writeFileSync(zipPath, Buffer.from(await res.arrayBuffer()));
   }

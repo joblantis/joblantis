@@ -129,7 +129,7 @@ create trigger on_auth_user_created
 
 -- Cég létrehozása: a hívó munkáltató lesz a tulajdonos (atomikusan)
 create or replace function public.create_company(p_name text, p_description text default null, p_website text default null)
-returns uuid language plpgsql security definer set search_path = public as $$
+returns uuid language plpgsql security definer set search_path = public, extensions as $$
 declare
   v_id uuid;
   v_base text;
