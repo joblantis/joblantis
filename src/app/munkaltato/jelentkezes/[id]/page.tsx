@@ -12,11 +12,14 @@ import { Badge } from "@/components/ui/Badge";
 import { ProfileView } from "@/components/candidate/ProfileView";
 import { MatchExplain } from "@/components/match/MatchExplain";
 import { StatusActions } from "./StatusActions";
+import { TrialPanel } from "@/components/trials/TrialPanel";
+import { loadTrials } from "@/lib/trials";
 
 export const metadata: Metadata = { title: "Jelölt profilja" };
 
 export default async function ApplicationPage(props: PageProps<"/munkaltato/jelentkezes/[id]">) {
   const { id } = await props.params;
+  const { ertekelve } = await props.searchParams;
   await requireRole(["employer", "admin"], `/munkaltato/jelentkezes/${id}`);
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const supabase = await createClient();
@@ -29,10 +32,11 @@ export default async function ApplicationPage(props: PageProps<"/munkaltato/jele
     .maybeSingle();
   if (!app) notFound();
 
-  const [data, { data: match }, { data: refs }] = await Promise.all([
+  const [data, { data: match }, { data: refs }, trials] = await Promise.all([
     loadCandidateProfile(supabase, app.candidate_id),
     supabase.rpc("match_details", { p_candidate: app.candidate_id, p_job: app.job_id }),
     supabase.rpc("candidate_reference_counts", { p_candidate_ids: [app.candidate_id] }),
+    loadTrials(supabase, app.id),
   ]);
   if (!data) notFound();
   const details = parseMatch(match);
@@ -55,11 +59,21 @@ export default async function ApplicationPage(props: PageProps<"/munkaltato/jele
         )}
       </div>
 
+      {ertekelve && (
+        <p role="status" className="rounded-2xl bg-success/10 px-4 py-3 text-sm font-medium text-success">
+          Értékelés elmentve. A legalább 4-es pontot kapott kompetenciák „igazolt (próbanap)” státuszt kaptak.
+        </p>
+      )}
+
       <StatusActions applicationId={app.id} status={app.status} />
       {CHAT_OPEN.includes(app.status) && (
         <Link href={`/uzenetek/${app.id}`} className="block rounded-2xl bg-brand px-4 py-3 text-center font-semibold text-white">
           Chat megnyitása
         </Link>
+      )}
+
+      {app.status !== "new" && (
+        <TrialPanel applicationId={app.id} trials={trials} role="employer" canPropose={["viewed", "trial", "offer"].includes(app.status)} />
       )}
 
       {details && (

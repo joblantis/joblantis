@@ -42,7 +42,10 @@ begin
       'log_application_status','check_job_venue','expire_jobs','search_public_jobs','candidate_relevant_competencies',
       'has_applied_to_job','has_applied_to_company','has_applied_to_venue','match_details','candidate_job_feed',
       'candidate_job_matches','apply_to_job','job_applicants','candidate_reference_counts','my_conversations',
-      'unread_message_count','notify_application','notify_message','claim_notification_emails'
+      'unread_message_count','notify_application','notify_message','claim_notification_emails',
+      'create_reference_request','reference_request_by_token','submit_reference','sync_reference_skills',
+      'guard_reference_review','after_reference_review','candidate_references','claim_reference_reminders',
+      'expire_reference_requests','respond_trial_shift','notify_trial_shift','submit_trial_evaluation'
     ])
   loop
     execute format('drop function if exists %s cascade', f);

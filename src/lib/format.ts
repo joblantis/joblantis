@@ -65,3 +65,28 @@ export function budapestDatePlus(days: number) {
 export function isPast(iso: string | null | undefined) {
   return !!iso && new Date(iso).getTime() <= Date.now();
 }
+
+const dateTime = new Intl.DateTimeFormat("hu-HU", {
+  year: "numeric", month: "long", day: "numeric", weekday: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Budapest",
+});
+
+export function formatDateTime(value: string | null | undefined) {
+  return value ? dateTime.format(new Date(value)) : "";
+}
+
+/** <input type="datetime-local"> értéke (budapesti helyi idő) → Date. */
+export function budapestLocalToDate(local: string) {
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(local)) return null;
+  const part = new Intl.DateTimeFormat("en-US", { timeZone: "Europe/Budapest", timeZoneName: "longOffset" })
+    .formatToParts(new Date(`${local}:00Z`))
+    .find((p) => p.type === "timeZoneName")?.value;
+  const offset = part?.replace("GMT", "") || "+01:00";
+  const d = new Date(`${local}:00${offset}`);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+/** Időtartam percben → "4 óra" / "4,5 óra". */
+export function formatDuration(minutes: number) {
+  const h = minutes / 60;
+  return `${new Intl.NumberFormat("hu-HU", { maximumFractionDigits: 1 }).format(h)} óra`;
+}

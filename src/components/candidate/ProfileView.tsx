@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/Badge";
 import { AlbumTiles } from "@/components/media/AlbumTiles";
+import { ReferenceCard } from "@/components/references/ReferenceCard";
 import { formatDate, formatShifts, WAGE_PERIOD_LABELS } from "@/lib/format";
 import type { CandidateProfileData } from "@/lib/candidate/profile";
 
@@ -17,7 +18,7 @@ function LevelDots({ level }: { level: number }) {
 
 /** Jelölti profil nézet – a jelölt saját előnézete, később a munkáltatói nézet alapja. */
 export function ProfileView({ data }: { data: CandidateProfileData }) {
-  const { profile, introVideo, skills, workStyle, roles, gallery } = data;
+  const { profile, introVideo, skills, workStyle, roles, gallery, references } = data;
   const wage = profile.wage_expectation ? `${new Intl.NumberFormat("hu-HU").format(profile.wage_expectation)} ${WAGE_PERIOD_LABELS[profile.wage_period]}` : null;
 
   return (
@@ -110,6 +111,15 @@ export function ProfileView({ data }: { data: CandidateProfileData }) {
               </li>
             ))}
           </ul>
+        </section>
+      )}
+
+      {references.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-lg font-bold">Ajánlások</h2>
+          {references.map((r) => (
+            <ReferenceCard key={r.reference_id} r={r} />
+          ))}
         </section>
       )}
 

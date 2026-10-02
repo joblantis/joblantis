@@ -3,10 +3,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 import { signedUrls } from "@/lib/storage";
 import { loadGallery } from "./gallery";
+import type { ReferenceView } from "@/components/references/ReferenceCard";
 
 /** A jelölt teljes profilja megjelenítéshez – a hívó jogaival (RLS). */
 export async function loadCandidateProfile(supabase: SupabaseClient<Database>, candidateId: string) {
-  const [{ data: profile }, { data: person }, { data: skills }, { data: styles }, { data: roles }, gallery] = await Promise.all([
+  const [{ data: profile }, { data: person }, { data: skills }, { data: styles }, { data: roles }, gallery, { data: refs }] = await Promise.all([
     supabase.from("candidate_profiles").select("*, settlements(postal_code, name, county)").eq("user_id", candidateId).maybeSingle(),
     supabase.from("profiles").select("full_name").eq("id", candidateId).maybeSingle(),
     supabase
@@ -16,6 +17,8 @@ export async function loadCandidateProfile(supabase: SupabaseClient<Database>, c
     supabase.from("work_style_profiles").select("score, work_style_dimensions(name, low_label, high_label, sort_order)").eq("candidate_id", candidateId),
     supabase.from("candidate_target_roles").select("job_role_templates(name, sort_order)").eq("candidate_id", candidateId),
     loadGallery(supabase, candidateId),
+    // RLS-biztos függvény: a munkáltató csak a jóváhagyott, nem rejtett ajánlásokat kapja, a referens email címe nélkül
+    supabase.rpc("candidate_references", { p_candidate: candidateId }),
   ]);
   if (!profile) return null;
 
@@ -48,6 +51,7 @@ export async function loadCandidateProfile(supabase: SupabaseClient<Database>, c
       .sort((a, b) => a.sort_order - b.sort_order)
       .map((r) => r.name),
     gallery,
+    references: ((refs ?? []) as ReferenceView[]).filter((r) => r.approved_at && !r.hidden),
   };
 }
 

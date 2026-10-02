@@ -18,7 +18,8 @@ npm run dev
 
 `npm run lint`, `npm run typecheck`, `npm run build`. Az RLS-teszt helyi Postgresen fut:
 `supabase/tests/supabase_stub.sql` → migrációk → seed → `supabase/tests/rls_test.sql`, majd `supabase/tests/phase3_test.sql`
-(illesztés, jelentkezés, jelentkezői lista, chat és értesítések jogosultságai).
+(illesztés, jelentkezés, jelentkezői lista, chat és értesítések jogosultságai), végül `supabase/tests/phase4_test.sql`
+(ajánlások, próbanap, igazolt státuszok).
 
 ## Illesztés és rangsor (3. fázis)
 
@@ -32,3 +33,12 @@ Az indoklást (`src/lib/match.ts`) ugyanebből a JSON-ból állítjuk elő.
 Az értesítéseket adatbázis-triggerek hozzák létre (új jelentkező, státuszváltás, udvarias elutasítás, új üzenet),
 az alkalmazásban azonnal látszanak. Emailben a Resend küldi ki őket (`RESEND_API_KEY`, `EMAIL_FROM`, service role kell);
 a napi Vercel Cron (`/api/cron/ertesitesek`, `CRON_SECRET`) a kimaradtakat pótolja.
+
+## Ajánlások és próbanap (4. fázis)
+
+- Ajánláskérés: a referens emailben kap egy egyszer használatos linket (`/ajanlas/<token>`), az adatbázisba csak a token
+  SHA-256 hash-e kerül. 7 nap után a napi cron egyszer emlékeztet (új linkkel, a régi is él), 30 nap után lejár.
+- A beérkezett ajánlást a jelölt jóváhagyja (vissza nem vonható, csak elrejthető). Jóváhagyáskor a referens által igazolt
+  kompetenciák „igazolt (referencia)” státuszt kapnak; elrejtéskor ez visszaáll.
+- Próbanap: a munkáltató a chatből, a jelölt profiljáról vagy a pipeline-ból ajánl időpontot, a jelölt elfogadja.
+  Utána az állás kompetenciáit 1–5-ig pontozza; a legalább 4-es pontot kapottak „igazolt (próbanap)” státuszt kapnak.

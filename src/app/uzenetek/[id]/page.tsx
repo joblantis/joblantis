@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/Badge";
 import { APPLICATION_STATUS_LABELS, CANDIDATE_STATUS_LABELS, CHAT_OPEN, STATUS_TONE } from "@/lib/applications";
 import { ChatRoom } from "./ChatRoom";
 import { markThreadRead } from "../actions";
+import { TrialPanel } from "@/components/trials/TrialPanel";
+import { loadTrials } from "@/lib/trials";
 
 export const metadata: Metadata = { title: "Chat" };
 
@@ -27,9 +29,10 @@ export default async function ChatPage(props: PageProps<"/uzenetek/[id]">) {
 
   const isCandidate = app.candidate_id === user.id;
   await markThreadRead(app.id);
-  const [{ data: messages }, { data: person }] = await Promise.all([
+  const [{ data: messages }, { data: person }, trials] = await Promise.all([
     supabase.from("messages").select("id, application_id, sender_id, body, created_at, read_at").eq("application_id", app.id).order("created_at").limit(500),
     isCandidate ? Promise.resolve({ data: null }) : supabase.from("profiles").select("full_name").eq("id", app.candidate_id).maybeSingle(),
+    loadTrials(supabase, app.id),
   ]);
 
   const company = app.jobs?.companies?.name ?? "Munkáltató";
@@ -47,6 +50,13 @@ export default async function ChatPage(props: PageProps<"/uzenetek/[id]">) {
             {isCandidate ? CANDIDATE_STATUS_LABELS[app.status] : APPLICATION_STATUS_LABELS[app.status]}
           </Badge>
         }
+      />
+      <TrialPanel
+        applicationId={app.id}
+        trials={trials}
+        role={isCandidate ? "candidate" : "employer"}
+        canPropose={!isCandidate && ["viewed", "trial", "offer"].includes(app.status)}
+        compact
       />
       <ChatRoom
         applicationId={app.id}

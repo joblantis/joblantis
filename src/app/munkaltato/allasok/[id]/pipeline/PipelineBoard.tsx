@@ -100,6 +100,11 @@ export function PipelineBoard({ items }: { items: PipelineItem[] }) {
                             </option>
                           ))}
                         </select>
+                        {(i.status === "viewed" || i.status === "trial") && (
+                          <Link href={`/munkaltato/jelentkezes/${i.applicationId}#probanap`} className="min-h-10 rounded-xl bg-soft px-3 py-2 text-sm font-semibold" aria-label="Próbanap">
+                            📅
+                          </Link>
+                        )}
                         {i.status !== "new" && i.status !== "rejected" && i.status !== "auto_closed" && (
                           <Link href={`/uzenetek/${i.applicationId}`} className="min-h-10 rounded-xl bg-brand/10 px-3 py-2 text-sm font-semibold text-brand">
                             Chat{i.unread ? ` (${i.unread})` : ""}

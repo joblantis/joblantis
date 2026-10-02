@@ -74,6 +74,7 @@ export default async function CandidateHome(props: PageProps<"/jelolt">) {
             ["/jelolt/alapadatok", "Alapadatok"],
             ["/jelolt/munkakorok", "Munkakörök"],
             ["/jelolt/mentett", "Mentett állások"],
+            ["/jelolt/ajanlasok", "Ajánlások"],
           ].map(([href, label]) => (
             <Link key={href} href={href} className="flex min-h-14 items-center rounded-2xl border border-line px-4 text-sm font-semibold hover:border-brand">
               {label}
