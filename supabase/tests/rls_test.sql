@@ -117,6 +117,37 @@ do $$ begin
   end;
 end $$;
 
+-- 2. fázis: jelölti albumok, kártyaválaszok, releváns kompetenciák
+reset role;
+set local role authenticated;
+set local request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000c';
+insert into public.candidate_target_roles (candidate_id, template_id) values (auth.uid(), (select id from public.job_role_templates where slug = 'barista'));
+insert into public.candidate_swipe_answers (candidate_id, card_id, direction)
+  select auth.uid(), id, 'right' from public.swipe_cards where template_id = (select id from public.job_role_templates where slug = 'barista') limit 3;
+insert into public.albums (id, candidate_id, title) values ('30000000-0000-0000-0000-000000000001', auth.uid(), 'Kávék');
+insert into public.media_items (album_id, candidate_id, kind, file_path, thumb_path)
+  values ('30000000-0000-0000-0000-000000000001', auth.uid(), 'image', 'x/y.webp', 'x/y_thumb.webp');
+do $$ begin
+  assert (select count(*) from public.candidate_relevant_competencies()) >= 8, 'releváns kompetenciák';
+end $$;
+set local request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000b';
+do $$ begin
+  assert (select count(*) from public.albums) = 0, 'B nem látja a jelölt albumát';
+  assert (select count(*) from public.candidate_swipe_answers) = 0, 'munkáltató nem látja a swipe válaszokat';
+  begin
+    insert into public.media_items (album_id, candidate_id, kind, file_path)
+      values ('30000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-00000000000c', 'image', 'z.webp');
+    assert false, 'idegen albumba nem írhat';
+  exception when insufficient_privilege then null;
+  end;
+end $$;
+set local request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+do $$ begin
+  assert (select count(*) from public.albums) = 1, 'A (jelentkezés után) látja az albumot';
+  assert (select count(*) from public.media_items) = 1, 'A látja a médiát';
+  assert (select count(*) from public.candidate_swipe_answers) = 0, 'a nyers swipe válaszok privátak';
+end $$;
+
 reset role;
 select 'RLS TESZT OK' as eredmeny;
 rollback;

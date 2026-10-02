@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ComponentType, SVGProps } from "react";
-import { IconBriefcase, IconBuilding, IconHome, IconLogin, IconPin, IconSearch, IconUser } from "@/components/ui/Icons";
+import { IconBriefcase, IconBuilding, IconImage, IconHome, IconLogin, IconPin, IconSearch, IconUser } from "@/components/ui/Icons";
 import type { Enums } from "@/types/database";
 
 type Item = { href: string; label: string; icon: ComponentType<SVGProps<SVGSVGElement>>; exact?: boolean };
@@ -16,7 +16,8 @@ const NAV: Record<Enums<"user_role"> | "guest", Item[]> = {
   ],
   candidate: [
     { href: "/allasok", label: "Állások", icon: IconSearch },
-    { href: "/jelolt", label: "Profilom", icon: IconUser },
+    { href: "/jelolt/galeria", label: "Galéria", icon: IconImage },
+    { href: "/jelolt", label: "Profilom", icon: IconUser, exact: true },
   ],
   employer: [
     { href: "/munkaltato", label: "Áttekintés", icon: IconHome, exact: true },

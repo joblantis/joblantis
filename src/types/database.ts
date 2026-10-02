@@ -1060,6 +1060,7 @@ export type Database = {
     Views: { [_ in never]: never };
     Functions: {
       app_role: { Args: Record<PropertyKey, never>; Returns: Database["public"]["Enums"]["user_role"] };
+      candidate_relevant_competencies: { Args: Record<PropertyKey, never>; Returns: { id: number | null; name: string | null; category: string | null }[] };
       company_has_public_job: { Args: { p_company_id: string }; Returns: boolean };
       create_company: { Args: { p_name: string; p_description?: string; p_website?: string }; Returns: string };
       distance_km: { Args: { lat1: number; lng1: number; lat2: number; lng2: number }; Returns: number };
