@@ -25,7 +25,24 @@ export function isEmailConfigured() {
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
 /** Egyszerű, márkázott email sablon egy gombbal. */
-export function renderEmail({ greeting, title, body, url, cta }: { greeting: string; title: string; body: string; url: string; cta: string }) {
+export function renderEmail({
+  greeting,
+  title,
+  body,
+  url,
+  cta,
+  secondary,
+}: {
+  greeting: string;
+  title: string;
+  body: string;
+  url: string;
+  cta: string;
+  secondary?: { url: string; cta: string };
+}) {
+  const second = secondary
+    ? ` <a href="${esc(secondary.url)}" style="display:inline-block;margin-left:8px;border:1px solid #e7e7ec;color:#0a0a0a;text-decoration:none;font-weight:600;padding:13px 21px;border-radius:14px">${esc(secondary.cta)}</a>`
+    : "";
   const html = `<!doctype html><html lang="hu"><body style="margin:0;background:#f4f5fb;font-family:Inter,Arial,sans-serif;color:#0a0a0a">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:24px 12px">
 <table role="presentation" width="100%" style="max-width:520px;background:#ffffff;border-radius:20px;padding:28px">
@@ -33,9 +50,9 @@ export function renderEmail({ greeting, title, body, url, cta }: { greeting: str
 <tr><td style="padding-top:20px;font-size:15px">${esc(greeting)}</td></tr>
 <tr><td style="padding-top:8px;font-size:20px;font-weight:700">${esc(title)}</td></tr>
 <tr><td style="padding-top:12px;font-size:15px;line-height:1.55;white-space:pre-line">${esc(body)}</td></tr>
-<tr><td style="padding-top:24px"><a href="${esc(url)}" style="display:inline-block;background:#001AA6;color:#ffffff;text-decoration:none;font-weight:600;padding:14px 22px;border-radius:14px">${esc(cta)}</a></td></tr>
+<tr><td style="padding-top:24px"><a href="${esc(url)}" style="display:inline-block;background:#001AA6;color:#ffffff;text-decoration:none;font-weight:600;padding:14px 22px;border-radius:14px">${esc(cta)}</a>${second}</td></tr>
 <tr><td style="padding-top:28px;font-size:12px;color:#7a7a7a">Ezt az értesítést a JOBLANTIS fiókod miatt kaptad. Raise your future.</td></tr>
 </table></td></tr></table></body></html>`;
-  const text = `${greeting}\n\n${title}\n\n${body}\n\n${cta}: ${url}\n\n– JOBLANTIS`;
+  const text = `${greeting}\n\n${title}\n\n${body}\n\n${cta}: ${url}${secondary ? `\n${secondary.cta}: ${secondary.url}` : ""}\n\n– JOBLANTIS`;
   return { html, text };
 }

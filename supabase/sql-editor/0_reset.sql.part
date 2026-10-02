@@ -8,7 +8,8 @@ declare
 begin
   foreach p in array array[
     'company files read','company files insert','company files update','company files delete',
-    'candidate files read','candidate files insert','candidate files update','candidate files delete'
+    'candidate files read','candidate files insert','candidate files update','candidate files delete',
+    'admin files delete'
   ] loop
     execute format('drop policy if exists %I on storage.objects', p);
   end loop;
@@ -45,7 +46,9 @@ begin
       'unread_message_count','notify_application','notify_message','claim_notification_emails',
       'create_reference_request','reference_request_by_token','submit_reference','sync_reference_skills',
       'guard_reference_review','after_reference_review','candidate_references','claim_reference_reminders',
-      'expire_reference_requests','respond_trial_shift','notify_trial_shift','submit_trial_evaluation'
+      'expire_reference_requests','respond_trial_shift','notify_trial_shift','submit_trial_evaluation',
+      'process_no_ghosting','schedule_followups','claim_due_followups','followup_by_token','submit_followup',
+      'run_scheduled_jobs','admin_set_role','admin_stats'
     ])
   loop
     execute format('drop function if exists %s cascade', f);

@@ -18,8 +18,8 @@ npm run dev
 
 `npm run lint`, `npm run typecheck`, `npm run build`. Az RLS-teszt helyi Postgresen fut:
 `supabase/tests/supabase_stub.sql` → migrációk → seed → `supabase/tests/rls_test.sql`, majd `supabase/tests/phase3_test.sql`
-(illesztés, jelentkezés, jelentkezői lista, chat és értesítések jogosultságai), végül `supabase/tests/phase4_test.sql`
-(ajánlások, próbanap, igazolt státuszok).
+(illesztés, jelentkezés, jelentkezői lista, chat és értesítések jogosultságai), `supabase/tests/phase4_test.sql`
+(ajánlások, próbanap, igazolt státuszok) és `supabase/tests/phase5_test.sql` (nincs ghosting, utókövetés, admin).
 
 ## Illesztés és rangsor (3. fázis)
 
@@ -42,3 +42,17 @@ a napi Vercel Cron (`/api/cron/ertesitesek`, `CRON_SECRET`) a kimaradtakat póto
   kompetenciák „igazolt (referencia)” státuszt kapnak; elrejtéskor ez visszaáll.
 - Próbanap: a munkáltató a chatből, a jelölt profiljáról vagy a pipeline-ból ajánl időpontot, a jelölt elfogadja.
   Utána az állás kompetenciáit 1–5-ig pontozza; a legalább 4-es pontot kapottak „igazolt (próbanap)” státuszt kapnak.
+
+## Ütemezett feladatok, utókövetés, admin (5. fázis)
+
+- **Nincs ghosting:** a 3. napon a munkáltató emlékeztetőt kap, az 5. napon a jelentkezés automatikusan lezárul, és a jelölt
+  udvarias értesítést kap. A `run_scheduled_jobs()` adatbázis-függvény óránként fut a Supabase pg_cronból (`joblantis-hourly`),
+  és naponta a Vercel Cron is meghívja.
+- **Utókövetés:** felvételkor 30, 90 és 180 napos kérdés ütemeződik (`followups` tábla, külön a tanításhoz). A napi cron
+  emailben küldi a cég tagjainak; a válasz bejelentkezés nélkül, a `/utokovetes/<token>` oldalon adható meg.
+- **Admin:** `/admin` – statisztika, munkakör-sablonok (kompetenciák, munkastílus-célprofil), kompetenciák, swipe kártyák,
+  moderálás (állás lezárása, média törlése, szerepkörök). Az első admint SQL-ből kell kinevezni:
+  `update public.profiles set role = 'admin' where email = '...';`
+- **Emailek** (Resend): minden értesítés (új jelentkező, státusz, elutasítás/lezárás, chat, próbanap, ajánlás, emlékeztető)
+  azonnal kimegy a műveletek után, a kimaradtakat a napi cron pótolja. A Vercel Hobby csomagon a cron naponta egyszer fut
+  (09:00 körül); Pro csomagon a `vercel.json` ütemezése sűríthető.

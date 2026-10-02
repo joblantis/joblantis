@@ -29,7 +29,9 @@ const NAV: Record<Enums<"user_role"> | "guest", Item[]> = {
     { href: "/munkaltato/ceg", label: "Cég", icon: IconBuilding },
   ],
   admin: [
+    { href: "/admin", label: "Admin", icon: IconHome },
     { href: "/allasok", label: "Állások", icon: IconSearch },
+    { href: "/uzenetek", label: "Üzenetek", icon: IconChat },
     { href: "/munkaltato", label: "Munkáltató", icon: IconBriefcase },
   ],
 };

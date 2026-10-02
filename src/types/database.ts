@@ -387,39 +387,45 @@ export type Database = {
           application_id: string;
           day_offset: number;
           due_at: string;
-          token_hash: string;
+          token_hash: string | null;
           sent_at: string | null;
           answered_at: string | null;
           still_employed: boolean | null;
           reliable: number | null;
           independent: number | null;
           productive: number | null;
+          cancelled_at: string | null;
+          answered_by_email: string | null;
         };
         Insert: {
           id?: string;
           application_id: string;
           day_offset: number;
           due_at: string;
-          token_hash: string;
+          token_hash?: string | null;
           sent_at?: string | null;
           answered_at?: string | null;
           still_employed?: boolean | null;
           reliable?: number | null;
           independent?: number | null;
           productive?: number | null;
+          cancelled_at?: string | null;
+          answered_by_email?: string | null;
         };
         Update: {
           id?: string;
           application_id?: string;
           day_offset?: number;
           due_at?: string;
-          token_hash?: string;
+          token_hash?: string | null;
           sent_at?: string | null;
           answered_at?: string | null;
           still_employed?: boolean | null;
           reliable?: number | null;
           independent?: number | null;
           productive?: number | null;
+          cancelled_at?: string | null;
+          answered_by_email?: string | null;
         };
         Relationships: [
           { foreignKeyName: "followups_application_id_fkey"; columns: ["application_id"]; isOneToOne: false; referencedRelation: "applications"; referencedColumns: ["id"] },
@@ -1128,6 +1134,8 @@ export type Database = {
     };
     Views: { [_ in never]: never };
     Functions: {
+      admin_set_role: { Args: { p_user: string; p_role: Database["public"]["Enums"]["user_role"] }; Returns: undefined };
+      admin_stats: { Args: Record<PropertyKey, never>; Returns: Json };
       app_role: { Args: Record<PropertyKey, never>; Returns: Database["public"]["Enums"]["user_role"] };
       apply_to_job: { Args: { p_job_id: string }; Returns: string };
       candidate_job_feed: { Args: { p_template_id?: number; p_max_km?: number; p_limit?: number }; Returns: { job_id: string | null; score: number | null; missing_required: number | null; distance_km: number | null; details: Json | null }[] };
@@ -1135,6 +1143,7 @@ export type Database = {
       candidate_reference_counts: { Args: { p_candidate_ids: string[] }; Returns: { candidate_id: string | null; reference_count: number | null }[] };
       candidate_references: { Args: { p_candidate: string }; Returns: { reference_id: string | null; referee_name: string | null; company_name: string | null; job_position: string | null; period_from: string | null; period_to: string | null; employment_confirmed: boolean | null; recommendation: string | null; would_rehire: boolean | null; submitted_at: string | null; approved_at: string | null; hidden: boolean | null; competencies: string[] | null }[] };
       candidate_relevant_competencies: { Args: Record<PropertyKey, never>; Returns: { id: number | null; name: string | null; category: string | null }[] };
+      claim_due_followups: { Args: { p_limit?: number }; Returns: { followup_id: string | null; day_offset: number | null; candidate_name: string | null; job_title: string | null; company_name: string | null; recipient_emails: string[] | null }[] };
       claim_notification_emails: { Args: { p_limit?: number }; Returns: { id: string | null; email: string | null; full_name: string | null; title: string | null; body: string | null; link: string | null }[] };
       claim_reference_reminders: { Args: { p_limit?: number }; Returns: { request_id: string | null; referee_name: string | null; referee_email: string | null; candidate_name: string | null; company_name: string | null }[] };
       company_has_public_job: { Args: { p_company_id: string }; Returns: boolean };
@@ -1144,6 +1153,7 @@ export type Database = {
       employer_can_view_candidate: { Args: { p_candidate_id: string }; Returns: boolean };
       expire_jobs: { Args: Record<PropertyKey, never>; Returns: number };
       expire_reference_requests: { Args: Record<PropertyKey, never>; Returns: number };
+      followup_by_token: { Args: { p_token_hash: string }; Returns: { status: string | null; day_offset: number | null; candidate_name: string | null; job_title: string | null; company_name: string | null }[] };
       has_applied_to_company: { Args: { p_company_id: string }; Returns: boolean };
       has_applied_to_job: { Args: { p_job_id: string }; Returns: boolean };
       has_applied_to_venue: { Args: { p_venue_id: string }; Returns: boolean };
@@ -1156,9 +1166,12 @@ export type Database = {
       job_applicants: { Args: { p_job_id: string }; Returns: { application_id: string | null; candidate_id: string | null; status: Database["public"]["Enums"]["application_status"] | null; created_at: string | null; response_due_at: string | null; score: number | null; missing_required: number | null; details: Json | null }[] };
       match_details: { Args: { p_candidate: string; p_job: string }; Returns: Json };
       my_conversations: { Args: Record<PropertyKey, never>; Returns: { application_id: string | null; status: Database["public"]["Enums"]["application_status"] | null; job_title: string | null; company_name: string | null; candidate_id: string | null; candidate_name: string | null; last_body: string | null; last_at: string | null; last_sender: string | null; unread: number | null }[] };
+      process_no_ghosting: { Args: Record<PropertyKey, never>; Returns: Json };
       reference_request_by_token: { Args: { p_token_hash: string }; Returns: { request_id: string | null; status: string | null; candidate_name: string | null; company_name: string | null; job_position: string | null; period_from: string | null; period_to: string | null; referee_name: string | null; competencies: Json | null }[] };
       respond_trial_shift: { Args: { p_trial_id: string; p_accept: boolean }; Returns: undefined };
+      run_scheduled_jobs: { Args: Record<PropertyKey, never>; Returns: Json };
       search_public_jobs: { Args: { p_template_id?: number; p_lat?: number; p_lng?: number; p_max_km?: number; p_wage_period?: Database["public"]["Enums"]["wage_period"]; p_wage_min?: number; p_seasonal?: boolean; p_limit?: number; p_offset?: number }; Returns: { job_id: string | null; distance_km: number | null }[] };
+      submit_followup: { Args: { p_token_hash: string; p_still_employed: boolean; p_reliable: number; p_independent: number; p_productive: number }; Returns: boolean };
       submit_reference: { Args: { p_token_hash: string; p_employment_confirmed: boolean; p_competency_ids: number[]; p_recommendation: string; p_would_rehire: boolean }; Returns: boolean };
       submit_trial_evaluation: { Args: { p_trial_id: string; p_scores: Json; p_comment: string }; Returns: string };
       sync_reference_skills: { Args: { p_candidate: string }; Returns: undefined };
@@ -1172,7 +1185,7 @@ export type Database = {
       company_member_role: "owner" | "manager";
       job_status: "draft" | "active" | "expired" | "closed";
       media_kind: "image" | "video";
-      notification_kind: "application_new" | "application_status" | "application_rejected" | "message" | "reference" | "trial";
+      notification_kind: "application_new" | "application_status" | "application_rejected" | "message" | "reference" | "trial" | "reminder";
       reference_request_status: "pending" | "reminded" | "completed" | "expired";
       requirement_kind: "required" | "preferred";
       shift_type: "reggel" | "delutan" | "este" | "ejszaka" | "hetvege";
