@@ -668,6 +668,51 @@ export type Database = {
           { foreignKeyName: "messages_sender_id_fkey"; columns: ["sender_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
         ];
       };
+      notifications: {
+        Row: {
+          id: string;
+          user_id: string;
+          kind: Database["public"]["Enums"]["notification_kind"];
+          application_id: string | null;
+          title: string;
+          body: string;
+          link: string | null;
+          created_at: string;
+          read_at: string | null;
+          emailed_at: string | null;
+          email_attempts: number;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          kind: Database["public"]["Enums"]["notification_kind"];
+          application_id?: string | null;
+          title: string;
+          body: string;
+          link?: string | null;
+          created_at?: string;
+          read_at?: string | null;
+          emailed_at?: string | null;
+          email_attempts?: number;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          kind?: Database["public"]["Enums"]["notification_kind"];
+          application_id?: string | null;
+          title?: string;
+          body?: string;
+          link?: string | null;
+          created_at?: string;
+          read_at?: string | null;
+          emailed_at?: string | null;
+          email_attempts?: number;
+        };
+        Relationships: [
+          { foreignKeyName: "notifications_application_id_fkey"; columns: ["application_id"]; isOneToOne: false; referencedRelation: "applications"; referencedColumns: ["id"] },
+          { foreignKeyName: "notifications_user_id_fkey"; columns: ["user_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+        ];
+      };
       profiles: {
         Row: {
           id: string;
@@ -897,6 +942,27 @@ export type Database = {
           { foreignKeyName: "template_competencies_template_id_fkey"; columns: ["template_id"]; isOneToOne: false; referencedRelation: "job_role_templates"; referencedColumns: ["id"] },
         ];
       };
+      template_work_styles: {
+        Row: {
+          template_id: number;
+          dimension_id: number;
+          target: number;
+        };
+        Insert: {
+          template_id: number;
+          dimension_id: number;
+          target: number;
+        };
+        Update: {
+          template_id?: number;
+          dimension_id?: number;
+          target?: number;
+        };
+        Relationships: [
+          { foreignKeyName: "template_work_styles_dimension_id_fkey"; columns: ["dimension_id"]; isOneToOne: false; referencedRelation: "work_style_dimensions"; referencedColumns: ["id"] },
+          { foreignKeyName: "template_work_styles_template_id_fkey"; columns: ["template_id"]; isOneToOne: false; referencedRelation: "job_role_templates"; referencedColumns: ["id"] },
+        ];
+      };
       trial_shifts: {
         Row: {
           id: string;
@@ -1060,20 +1126,32 @@ export type Database = {
     Views: { [_ in never]: never };
     Functions: {
       app_role: { Args: Record<PropertyKey, never>; Returns: Database["public"]["Enums"]["user_role"] };
+      apply_to_job: { Args: { p_job_id: string }; Returns: string };
+      candidate_job_feed: { Args: { p_template_id?: number; p_max_km?: number; p_limit?: number }; Returns: { job_id: string | null; score: number | null; missing_required: number | null; distance_km: number | null; details: Json | null }[] };
+      candidate_job_matches: { Args: { p_job_ids: string[] }; Returns: { job_id: string | null; score: number | null; missing_required: number | null; required_total: number | null }[] };
+      candidate_reference_counts: { Args: { p_candidate_ids: string[] }; Returns: { candidate_id: string | null; reference_count: number | null }[] };
       candidate_relevant_competencies: { Args: Record<PropertyKey, never>; Returns: { id: number | null; name: string | null; category: string | null }[] };
+      claim_notification_emails: { Args: { p_limit?: number }; Returns: { id: string | null; email: string | null; full_name: string | null; title: string | null; body: string | null; link: string | null }[] };
       company_has_public_job: { Args: { p_company_id: string }; Returns: boolean };
       create_company: { Args: { p_name: string; p_description?: string; p_website?: string }; Returns: string };
       distance_km: { Args: { lat1: number; lng1: number; lat2: number; lng2: number }; Returns: number };
       employer_can_view_candidate: { Args: { p_candidate_id: string }; Returns: boolean };
       expire_jobs: { Args: Record<PropertyKey, never>; Returns: number };
+      has_applied_to_company: { Args: { p_company_id: string }; Returns: boolean };
+      has_applied_to_job: { Args: { p_job_id: string }; Returns: boolean };
+      has_applied_to_venue: { Args: { p_venue_id: string }; Returns: boolean };
       is_admin: { Args: Record<PropertyKey, never>; Returns: boolean };
       is_application_employer: { Args: { p_application_id: string }; Returns: boolean };
       is_application_participant: { Args: { p_application_id: string }; Returns: boolean };
       is_company_member: { Args: { p_company_id: string }; Returns: boolean };
       is_company_owner: { Args: { p_company_id: string }; Returns: boolean };
       is_job_public: { Args: { p_job_id: string }; Returns: boolean };
+      job_applicants: { Args: { p_job_id: string }; Returns: { application_id: string | null; candidate_id: string | null; status: Database["public"]["Enums"]["application_status"] | null; created_at: string | null; response_due_at: string | null; score: number | null; missing_required: number | null; details: Json | null }[] };
+      match_details: { Args: { p_candidate: string; p_job: string }; Returns: Json };
+      my_conversations: { Args: Record<PropertyKey, never>; Returns: { application_id: string | null; status: Database["public"]["Enums"]["application_status"] | null; job_title: string | null; company_name: string | null; candidate_id: string | null; candidate_name: string | null; last_body: string | null; last_at: string | null; last_sender: string | null; unread: number | null }[] };
       search_public_jobs: { Args: { p_template_id?: number; p_lat?: number; p_lng?: number; p_max_km?: number; p_wage_period?: Database["public"]["Enums"]["wage_period"]; p_wage_min?: number; p_seasonal?: boolean; p_limit?: number; p_offset?: number }; Returns: { job_id: string | null; distance_km: number | null }[] };
       try_uuid: { Args: { p: string }; Returns: string };
+      unread_message_count: { Args: Record<PropertyKey, never>; Returns: number };
       venue_has_public_job: { Args: { p_venue_id: string }; Returns: boolean };
     };
     Enums: {
@@ -1082,6 +1160,7 @@ export type Database = {
       company_member_role: "owner" | "manager";
       job_status: "draft" | "active" | "expired" | "closed";
       media_kind: "image" | "video";
+      notification_kind: "application_new" | "application_status" | "application_rejected" | "message";
       reference_request_status: "pending" | "reminded" | "completed" | "expired";
       requirement_kind: "required" | "preferred";
       shift_type: "reggel" | "delutan" | "este" | "ejszaka" | "hetvege";

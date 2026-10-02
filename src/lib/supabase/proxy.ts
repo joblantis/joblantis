@@ -6,6 +6,7 @@ const PROTECTED: { prefix: string; roles: Array<Database["public"]["Enums"]["use
   { prefix: "/munkaltato", roles: ["employer", "admin"] },
   { prefix: "/jelolt", roles: ["candidate", "admin"] },
   { prefix: "/admin", roles: ["admin"] },
+  { prefix: "/uzenetek", roles: ["candidate", "employer", "admin"] },
 ];
 
 /** Munkamenet frissítése és optimista, szerepkör szerinti útvédelem. A valódi jogosultságot az RLS adja. */

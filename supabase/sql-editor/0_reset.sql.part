@@ -15,6 +15,7 @@ begin
 end $$;
 
 drop table if exists
+  public.notifications, public.template_work_styles,
   public.followups, public.evaluation_items, public.evaluations, public.trial_shifts,
   public.reference_competencies, public."references", public.reference_requests,
   public.messages, public.application_events, public.applications, public.job_swipes,
@@ -38,7 +39,10 @@ begin
       'set_updated_at','try_uuid','distance_km','app_role','is_admin','is_company_member','is_company_owner',
       'is_job_public','venue_has_public_job','company_has_public_job','employer_can_view_candidate',
       'is_application_participant','is_application_employer','handle_new_user','create_company',
-      'log_application_status','check_job_venue','expire_jobs','search_public_jobs','candidate_relevant_competencies'
+      'log_application_status','check_job_venue','expire_jobs','search_public_jobs','candidate_relevant_competencies',
+      'has_applied_to_job','has_applied_to_company','has_applied_to_venue','match_details','candidate_job_feed',
+      'candidate_job_matches','apply_to_job','job_applicants','candidate_reference_counts','my_conversations',
+      'unread_message_count','notify_application','notify_message','claim_notification_emails'
     ])
   loop
     execute format('drop function if exists %s cascade', f);
@@ -49,7 +53,7 @@ drop type if exists
   public.user_role, public.company_member_role, public.shift_type, public.requirement_kind,
   public.swipe_dir, public.card_kind, public.skill_status, public.verification_type,
   public.job_status, public.wage_period, public.application_status, public.media_kind,
-  public.reference_request_status, public.trial_status
+  public.reference_request_status, public.trial_status, public.notification_kind
   cascade;
 
 drop schema if exists joblantis_internal cascade;

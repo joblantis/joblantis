@@ -16,13 +16,17 @@ type Props<T> = {
   onSwipe: (card: T, dir: SwipeDirection) => void;
   labels: Record<SwipeDirection, string>;
   empty?: ReactNode;
+  /** A pakli magassága (Tailwind osztály); fotós kártyákhoz magasabb. */
+  heightClass?: string;
+  /** Koppintás a felső kártyára (húzás nélkül), pl. részletek megnyitása. */
+  onTap?: (card: T) => void;
 };
 
 /**
  * Húzogatós kártyapakli: jobbra / balra / felfelé húzás rugós animációval.
  * Minden mozdulatnak van gombos (X, csillag, pipa) és billentyűzetes (←, ↑, →) megfelelője.
  */
-export function SwipeDeck<T>({ cards, getKey, renderCard, onSwipe, labels, empty }: Props<T>) {
+export function SwipeDeck<T>({ cards, getKey, renderCard, onSwipe, labels, empty, heightClass = "h-[min(52svh,460px)] min-h-72", onTap }: Props<T>) {
   const [index, setIndex] = useState(0);
   const [forced, setForced] = useState<SwipeDirection | null>(null);
   const busy = useRef(false);
@@ -69,13 +73,13 @@ export function SwipeDeck<T>({ cards, getKey, renderCard, onSwipe, labels, empty
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="relative mx-auto h-[min(52svh,460px)] min-h-72 w-full max-w-sm select-none">
+      <div className={`relative mx-auto w-full max-w-sm select-none ${heightClass}`}>
         {next && (
           <div className="absolute inset-0 scale-[0.95] rounded-[2rem] border border-line bg-white opacity-70 shadow-sm" aria-hidden>
             {renderCard(next)}
           </div>
         )}
-        <TopCard key={getKey(current)} forced={forced} onDone={finish} onDragDecided={finish} onLock={lock} labels={labels}>
+        <TopCard key={getKey(current)} forced={forced} onDone={finish} onDragDecided={finish} onLock={lock} labels={labels} onTap={onTap ? () => onTap(current) : undefined}>
           {renderCard(current)}
         </TopCard>
       </div>
@@ -94,8 +98,10 @@ function TopCard({
   onDragDecided,
   onLock,
   labels,
+  onTap,
 }: {
   children: ReactNode;
+  onTap?: () => void;
   forced: SwipeDirection | null;
   onDone: (dir: SwipeDirection) => void;
   onDragDecided: (dir: SwipeDirection) => void;
@@ -134,6 +140,7 @@ function TopCard({
       className="absolute inset-0 cursor-grab touch-none rounded-[2rem] border border-line bg-white shadow-xl active:cursor-grabbing"
       style={{ x, y, rotate }}
       drag={!forced}
+      onTap={onTap}
       dragElastic={0.9}
       dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
       dragSnapToOrigin={false}

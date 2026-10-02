@@ -25,7 +25,11 @@ export default async function EditJobPage(props: PageProps<"/munkaltato/allasok/
     .maybeSingle();
   if (!job) notFound();
 
-  const data = await loadJobFormData(company.id, job.template_id);
+  const [data, { data: apps }] = await Promise.all([
+    loadJobFormData(company.id, job.template_id),
+    supabase.from("applications").select("status").eq("job_id", job.id),
+  ]);
+  const newCount = (apps ?? []).filter((a) => a.status === "new").length;
   if (!data.template) notFound();
   const expired = !!job.expires_at && new Date(job.expires_at) <= new Date();
   const shownStatus = job.status === "active" && expired ? "expired" : job.status;
@@ -53,6 +57,16 @@ export default async function EditJobPage(props: PageProps<"/munkaltato/allasok/
           Nyilvános oldal megnyitása →
         </Link>
       )}
+      <div className="grid grid-cols-2 gap-3">
+        <Link href={`/munkaltato/allasok/${job.id}/jeloltek`} className="rounded-3xl bg-brand p-4 text-white">
+          <p className="text-2xl font-bold">{newCount}</p>
+          <p className="text-sm text-white/80">új jelölt – kártyák</p>
+        </Link>
+        <Link href={`/munkaltato/allasok/${job.id}/pipeline`} className="rounded-3xl bg-soft p-4">
+          <p className="text-2xl font-bold text-brand">{apps?.length ?? 0}</p>
+          <p className="text-sm text-muted">jelentkező – pipeline</p>
+        </Link>
+      </div>
       <JobStatusActions jobId={job.id} status={job.status} expired={expired} />
       <JobForm
         template={{ id: data.template.id, name: data.template.name }}

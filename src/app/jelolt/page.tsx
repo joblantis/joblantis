@@ -62,6 +62,10 @@ export default async function CandidateHome(props: PageProps<"/jelolt">) {
           </ButtonLink>
         </Card>
       ) : (
+        <>
+        <ButtonLink href="/jelolt/allaskereses" className="w-full">
+          Álláskeresés illeszkedés szerint
+        </ButtonLink>
         <div className="grid grid-cols-2 gap-3">
           {[
             ["/jelolt/bemutatkozo", data?.introVideo ? "Bemutatkozó videó ✓" : "Bemutatkozó videó"],
@@ -69,12 +73,14 @@ export default async function CandidateHome(props: PageProps<"/jelolt">) {
             ["/jelolt/kartyak", "Kártyák újra"],
             ["/jelolt/alapadatok", "Alapadatok"],
             ["/jelolt/munkakorok", "Munkakörök"],
+            ["/jelolt/mentett", "Mentett állások"],
           ].map(([href, label]) => (
             <Link key={href} href={href} className="flex min-h-14 items-center rounded-2xl border border-line px-4 text-sm font-semibold hover:border-brand">
               {label}
             </Link>
           ))}
         </div>
+        </>
       )}
 
       {data && step === "done" && <ProfileView data={data} />}

@@ -23,7 +23,7 @@ export default async function EmployerJobsPage() {
   const supabase = await createClient();
   const { data: jobs } = await supabase
     .from("jobs")
-    .select("id, title, status, expires_at, wage_min, wage_max, wage_period, venues(name), job_role_templates(name)")
+    .select("id, title, status, expires_at, wage_min, wage_max, wage_period, venues(name), job_role_templates(name), applications(status)")
     .eq("company_id", company.id)
     .order("created_at", { ascending: false });
 
@@ -58,7 +58,15 @@ export default async function EmployerJobsPage() {
                     <Badge tone={TONE[status]}>{JOB_STATUS_LABELS[status]}</Badge>
                   </div>
                   <p className="mt-2 text-sm">{formatWage(j.wage_min, j.wage_max, j.wage_period)}</p>
-                  {j.expires_at && <p className="text-xs text-muted">Lejár: {formatDate(j.expires_at)}</p>}
+                  <div className="flex items-center justify-between gap-2">
+                    {j.expires_at && <p className="text-xs text-muted">Lejár: {formatDate(j.expires_at)}</p>}
+                    {j.applications.length > 0 && (
+                      <p className="text-xs font-semibold text-brand">
+                        {j.applications.length} jelentkező
+                        {j.applications.some((a) => a.status === "new") && ` · ${j.applications.filter((a) => a.status === "new").length} új`}
+                      </p>
+                    )}
+                  </div>
                 </Link>
               </li>
             );

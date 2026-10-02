@@ -43,3 +43,15 @@ export const IconSun = (p: SVGProps<SVGSVGElement>) => (
 export const IconImage = (p: SVGProps<SVGSVGElement>) => (
   <Svg {...p}><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="9" cy="10" r="2" /><path d="m21 16-5-5-9 9" /></Svg>
 );
+export const IconChat = (p: SVGProps<SVGSVGElement>) => (
+  <Svg {...p}><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z" /></Svg>
+);
+export const IconCards = (p: SVGProps<SVGSVGElement>) => (
+  <Svg {...p}><rect x="6" y="3" width="13" height="17" rx="2" transform="rotate(8 12 12)" /><rect x="4" y="4" width="13" height="17" rx="2" /></Svg>
+);
+export const IconInbox = (p: SVGProps<SVGSVGElement>) => (
+  <Svg {...p}><path d="M3 13h5l1.5 3h5L16 13h5" /><path d="M5 5h14l2 8v6H3v-6z" /></Svg>
+);
+export const IconBookmark = (p: SVGProps<SVGSVGElement>) => (
+  <Svg {...p}><path d="M6 3h12v18l-6-4-6 4z" /></Svg>
+);

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ComponentType, SVGProps } from "react";
-import { IconBriefcase, IconBuilding, IconImage, IconHome, IconLogin, IconPin, IconSearch, IconUser } from "@/components/ui/Icons";
+import { IconBriefcase, IconBuilding, IconCards, IconChat, IconHome, IconInbox, IconLogin, IconPin, IconSearch, IconUser } from "@/components/ui/Icons";
 import type { Enums } from "@/types/database";
 
 type Item = { href: string; label: string; icon: ComponentType<SVGProps<SVGSVGElement>>; exact?: boolean };
@@ -15,13 +15,16 @@ const NAV: Record<Enums<"user_role"> | "guest", Item[]> = {
     { href: "/belepes", label: "Belépés", icon: IconLogin },
   ],
   candidate: [
-    { href: "/allasok", label: "Állások", icon: IconSearch },
-    { href: "/jelolt/galeria", label: "Galéria", icon: IconImage },
+    { href: "/jelolt/allaskereses", label: "Keresés", icon: IconCards },
+    { href: "/allasok", label: "Lista", icon: IconSearch },
+    { href: "/jelolt/jelentkezesek", label: "Jelentkezések", icon: IconInbox },
+    { href: "/uzenetek", label: "Üzenetek", icon: IconChat },
     { href: "/jelolt", label: "Profilom", icon: IconUser, exact: true },
   ],
   employer: [
     { href: "/munkaltato", label: "Áttekintés", icon: IconHome, exact: true },
     { href: "/munkaltato/allasok", label: "Állásaim", icon: IconBriefcase },
+    { href: "/uzenetek", label: "Üzenetek", icon: IconChat },
     { href: "/munkaltato/helyszinek", label: "Helyszínek", icon: IconPin },
     { href: "/munkaltato/ceg", label: "Cég", icon: IconBuilding },
   ],
@@ -31,7 +34,7 @@ const NAV: Record<Enums<"user_role"> | "guest", Item[]> = {
   ],
 };
 
-export function BottomNav({ role }: { role: Enums<"user_role"> | null }) {
+export function BottomNav({ role, unread = 0 }: { role: Enums<"user_role"> | null; unread?: number }) {
   const pathname = usePathname();
   const items = NAV[role ?? "guest"];
   return (
@@ -46,8 +49,15 @@ export function BottomNav({ role }: { role: Enums<"user_role"> | null }) {
                 aria-current={active ? "page" : undefined}
                 className={`flex min-h-16 flex-col items-center justify-center gap-1 text-xs font-semibold ${active ? "text-brand" : "text-muted"}`}
               >
-                <Icon className="size-6" />
-                {label}
+                <span className="relative">
+                  <Icon className="size-6" />
+                  {href === "/uzenetek" && unread > 0 && (
+                    <span className="absolute -right-2.5 -top-1.5 min-w-5 rounded-full bg-danger px-1 text-center text-[11px] leading-5 text-white" aria-label={`${unread} olvasatlan`}>
+                      {unread > 99 ? "99+" : unread}
+                    </span>
+                  )}
+                </span>
+                <span className="max-w-full truncate px-0.5">{label}</span>
               </Link>
             </li>
           );

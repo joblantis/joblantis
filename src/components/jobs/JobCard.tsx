@@ -4,8 +4,19 @@ import { Badge } from "@/components/ui/Badge";
 import { IconClock, IconPin, IconWallet } from "@/components/ui/Icons";
 import { formatDistance, formatShifts, formatWage } from "@/lib/format";
 import type { PublicJob } from "@/lib/jobs";
+import { ScoreBadge } from "@/components/match/MatchExplain";
 
-export function JobCard({ job, coverUrl, distanceKm }: { job: PublicJob; coverUrl?: string; distanceKm?: number | null }) {
+export function JobCard({
+  job,
+  coverUrl,
+  distanceKm,
+  match,
+}: {
+  job: PublicJob;
+  coverUrl?: string;
+  distanceKm?: number | null;
+  match?: { score: number; missing_required: number };
+}) {
   const required = job.job_requirements.filter((r) => r.kind === "required").length;
   const distance = formatDistance(distanceKm);
   return (
@@ -40,7 +51,10 @@ export function JobCard({ job, coverUrl, distanceKm }: { job: PublicJob; coverUr
             {distance && <span className="text-muted">· {distance}</span>}
           </li>
         </ul>
-        <p className="text-xs font-semibold text-muted">{required} kötelező kompetencia</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-xs font-semibold text-muted">{required} kötelező kompetencia</p>
+          {match && <ScoreBadge match={match} />}
+        </div>
       </div>
     </Link>
   );

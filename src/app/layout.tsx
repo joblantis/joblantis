@@ -6,6 +6,7 @@ import { BottomNav } from "@/components/layout/BottomNav";
 import { ServiceWorkerRegister } from "@/components/layout/ServiceWorkerRegister";
 import { getSessionUser } from "@/lib/auth";
 import { publicEnv } from "@/lib/env";
+import { createClient } from "@/lib/supabase/server";
 
 const inter = Inter({ subsets: ["latin", "latin-ext"], variable: "--font-inter", display: "swap" });
 
@@ -30,12 +31,18 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const user = await getSessionUser();
+  let unread = 0;
+  if (user) {
+    const supabase = await createClient();
+    const { data } = await supabase.rpc("unread_message_count");
+    unread = data ?? 0;
+  }
   return (
     <html lang="hu" className={`${inter.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
         <Header user={user} />
         <main className="mx-auto w-full max-w-screen-sm flex-1 px-4 pb-28 pt-5">{children}</main>
-        <BottomNav role={user?.profile.role ?? null} />
+        <BottomNav role={user?.profile.role ?? null} unread={unread} />
         <ServiceWorkerRegister />
       </body>
     </html>

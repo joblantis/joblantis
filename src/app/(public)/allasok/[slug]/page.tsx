@@ -6,11 +6,16 @@ import { getSessionUser } from "@/lib/auth";
 import { PUBLIC_JOB_SELECT, coverUrls, sortedPhotos, type PublicJob } from "@/lib/jobs";
 import { formatDate, formatShifts, formatWage, WAGE_PERIOD_LABELS } from "@/lib/format";
 import { publicEnv } from "@/lib/env";
+import type { Enums } from "@/types/database";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Badge } from "@/components/ui/Badge";
 import { ButtonLink } from "@/components/ui/Button";
 import { LazyImage } from "@/components/ui/LazyImage";
 import { IconCheck, IconClock, IconPin, IconSun, IconWallet } from "@/components/ui/Icons";
+import { ApplyButton } from "@/components/jobs/ApplyButton";
+import { MatchExplain } from "@/components/match/MatchExplain";
+import { parseMatch } from "@/lib/match";
+import { CANDIDATE_STATUS_LABELS, CHAT_OPEN, STATUS_TONE } from "@/lib/applications";
 
 const getJob = cache(async (slug: string) => {
   const supabase = await createClient();
@@ -89,6 +94,22 @@ export default async function JobPage(props: PageProps<"/allasok/[slug]">) {
   const required = job.job_requirements.filter((r) => r.kind === "required");
   const preferred = job.job_requirements.filter((r) => r.kind === "preferred");
 
+  // jelöltnek: illeszkedés indoklással és a jelentkezés állapota
+  let candidate: {
+    done: boolean;
+    match: ReturnType<typeof parseMatch>;
+    application: { id: string; status: Enums<"application_status"> } | null;
+  } | null = null;
+  if (user?.profile.role === "candidate") {
+    const supabase = await createClient();
+    const [{ data: cp }, { data: match }, { data: app }] = await Promise.all([
+      supabase.from("candidate_profiles").select("onboarding_step").eq("user_id", user.id).maybeSingle(),
+      supabase.rpc("match_details", { p_candidate: user.id, p_job: job.id }),
+      supabase.from("applications").select("id, status").eq("job_id", job.id).eq("candidate_id", user.id).maybeSingle(),
+    ]);
+    candidate = { done: cp?.onboarding_step === "done", match: parseMatch(match), application: app };
+  }
+
   return (
     <article className="space-y-6">
       {live && (
@@ -98,7 +119,7 @@ export default async function JobPage(props: PageProps<"/allasok/[slug]">) {
         />
       )}
       <PageHeader title={job.title} subtitle={`${job.companies?.name} · ${job.venues?.name}`} back="/allasok" />
-      {!live && <p className="rounded-2xl bg-amber-100 px-4 py-3 text-sm font-medium text-amber-800">Ez a hirdetés jelenleg nem aktív (csak te látod).</p>}
+      {!live && <p className="rounded-2xl bg-amber-100 px-4 py-3 text-sm font-medium text-amber-800">Ez a hirdetés jelenleg nem aktív.</p>}
 
       {photos.length > 0 && (
         <div className="-mx-4 flex snap-x snap-mandatory gap-2 overflow-x-auto px-4">
@@ -120,6 +141,12 @@ export default async function JobPage(props: PageProps<"/allasok/[slug]">) {
         <Badge tone="brand">{job.job_role_templates?.name}</Badge>
         {job.is_seasonal && <Badge tone="warning">Szezonális</Badge>}
       </div>
+
+      {candidate?.match && (
+        <section className="rounded-3xl border border-brand/20 p-4">
+          <MatchExplain match={candidate.match} perspective="candidate" />
+        </section>
+      )}
 
       <ul className="grid gap-3 rounded-3xl bg-soft p-4 text-sm">
         <li className="flex gap-3">
@@ -193,13 +220,25 @@ export default async function JobPage(props: PageProps<"/allasok/[slug]">) {
 
       {job.expires_at && <p className="text-sm text-muted">A hirdetés lejár: {formatDate(job.expires_at)}</p>}
 
-      {live && (
+      {(live || candidate?.application) && (
         <div className="sticky bottom-20 z-10 -mx-4 bg-white/95 px-4 py-3 backdrop-blur">
           {!user ? (
             <ButtonLink href={`/belepes?next=${encodeURIComponent(`/allasok/${job.slug}`)}`} className="w-full">
               Jelentkezés – belépés szükséges
             </ButtonLink>
-          ) : user.profile.role === "candidate" ? (
+          ) : candidate?.application ? (
+            <div className="flex items-center justify-between gap-3 rounded-2xl bg-soft px-4 py-3">
+              <Badge tone={STATUS_TONE[candidate.application.status]}>{CANDIDATE_STATUS_LABELS[candidate.application.status]}</Badge>
+              <a
+                href={CHAT_OPEN.includes(candidate.application.status) ? `/uzenetek/${candidate.application.id}` : "/jelolt/jelentkezesek"}
+                className="text-sm font-semibold text-brand"
+              >
+                {CHAT_OPEN.includes(candidate.application.status) ? "Chat →" : "Jelentkezéseim →"}
+              </a>
+            </div>
+          ) : candidate?.done ? (
+            <ApplyButton jobId={job.id} />
+          ) : candidate ? (
             <ButtonLink href="/jelolt" className="w-full">
               Jelentkezéshez építsd fel a profilod
             </ButtonLink>

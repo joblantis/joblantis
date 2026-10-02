@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/env";
+import { getSessionUser } from "@/lib/auth";
 import { coverUrls, fetchPublicJobsByIds } from "@/lib/jobs";
 import { JobCard } from "@/components/jobs/JobCard";
 import { JobFilters } from "@/components/jobs/JobFilters";
@@ -54,7 +55,15 @@ export default async function JobsPage(props: PageProps<"/allasok">) {
   const visible = rows.slice(0, PAGE_SIZE);
   const distances = new Map(visible.map((h) => [h.job_id, h.distance_km]));
   const jobs = await fetchPublicJobsByIds(supabase, visible.map((h) => h.job_id));
-  const covers = await coverUrls(jobs);
+  const user = await getSessionUser();
+  const isCandidate = user?.profile.role === "candidate";
+  const [covers, { data: matches }] = await Promise.all([
+    coverUrls(jobs),
+    isCandidate && jobs.length
+      ? supabase.rpc("candidate_job_matches", { p_job_ids: jobs.map((j) => j.id) })
+      : Promise.resolve({ data: [] as { job_id: string | null; score: number | null; missing_required: number | null }[] }),
+  ]);
+  const matchById = new Map((matches ?? []).map((m) => [m.job_id, m]));
 
   const activeCount = [template, hely, tav, ber, szezonalis].filter(Boolean).length;
   const nextParams = new URLSearchParams(Object.entries(sp).flatMap(([k, v]) => (typeof v === "string" ? [[k, v]] : [])));
@@ -63,6 +72,11 @@ export default async function JobsPage(props: PageProps<"/allasok">) {
   return (
     <div className="space-y-4">
       <PageHeader title={template ? `${template.name} állások` : "Állások"} subtitle="Vendéglátás és szálloda – regisztráció nélkül böngészhető." />
+      {isCandidate && (
+        <a href="/jelolt/allaskereses" className="block rounded-2xl bg-brand/5 px-4 py-3 text-sm font-semibold text-brand">
+          Húzogatós nézet illeszkedés szerint →
+        </a>
+      )}
       <JobFilters
         templates={templates ?? []}
         activeCount={activeCount}
@@ -81,9 +95,15 @@ export default async function JobsPage(props: PageProps<"/allasok">) {
         <ul className="space-y-4">
           {jobs.map((job) => {
             const cover = job.venues?.venue_photos?.slice().sort((a, b) => a.sort_order - b.sort_order)[0];
+            const m = matchById.get(job.id);
             return (
               <li key={job.id}>
-                <JobCard job={job} coverUrl={cover ? covers.get(cover.path) : undefined} distanceKm={distances.get(job.id)} />
+                <JobCard
+                  job={job}
+                  coverUrl={cover ? covers.get(cover.path) : undefined}
+                  distanceKm={distances.get(job.id)}
+                  match={m?.score != null ? { score: m.score, missing_required: m.missing_required ?? 0 } : undefined}
+                />
               </li>
             );
           })}
