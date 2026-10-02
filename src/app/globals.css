@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+:root {
+  --brand: #001aa6;
+  --brand-dark: #00127a;
+  --ink: #0a0a0a;
+  --muted: #7a7a7a;
+  --surface: #ffffff;
+  --line: #e7e7ec;
+  --soft: #f4f5fb;
+  --danger: #c62828;
+  --success: #1b7f4b;
+}
+
+@theme inline {
+  --color-brand: var(--brand);
+  --color-brand-dark: var(--brand-dark);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-surface: var(--surface);
+  --color-line: var(--line);
+  --color-soft: var(--soft);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
