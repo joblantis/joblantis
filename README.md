@@ -1,6 +1,6 @@
 # JOBLANTIS
 
-Vendéglátós és szállodai álláskereső PWA – a specifikáció a `CLAUDE.md`-ben.
+Vendéglátós és szállodai álláskereső PWA. A teljes specifikáció a `CLAUDE.md`-ben van.
 
 ## Indítás
 
@@ -16,5 +16,5 @@ npm run dev
 
 ## Ellenőrzés
 
-`npm run lint`, `npm run typecheck`, `npm run build`. Az RLS-teszt helyi Postgresen:
+`npm run lint`, `npm run typecheck`, `npm run build`. Az RLS-teszt helyi Postgresen fut:
 `supabase/tests/supabase_stub.sql` → migrációk → seed → `supabase/tests/rls_test.sql`.
