@@ -56,3 +56,9 @@ a napi Vercel Cron (`/api/cron/ertesitesek`, `CRON_SECRET`) a kimaradtakat póto
 - **Emailek** (Resend): minden értesítés (új jelentkező, státusz, elutasítás/lezárás, chat, próbanap, ajánlás, emlékeztető)
   azonnal kimegy a műveletek után, a kimaradtakat a napi cron pótolja. A Vercel Hobby csomagon a cron naponta egyszer fut
   (09:00 körül); Pro csomagon a `vercel.json` ütemezése sűríthető.
+
+## Minta adatok
+
+`supabase/seed/demo/demo_jobs.sql`: 8 kitalált cég (a nevükben „(minta)”), 12 helyszín és 26 aktív állás –
+minden munkakörben 2–3 –, a sablon szerinti kompetencia-követelményekkel. Újrafuttatható (a lejáratot 60 napra frissíti).
+Eltávolítás: `supabase/seed/demo/remove_demo.sql`. A minta-munkáltató fióknak nincs jelszava.
